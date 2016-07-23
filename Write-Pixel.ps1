@@ -10,23 +10,24 @@ Function Write-Pixel
         
         # Console Colors and their Hexadecimal values
         $Colors = @{
-            'FF000000' =   'Black'         
-            'FF000080' =   'DarkBlue'      
-            'FF008000' =   'DarkGreen'     
-            'FF008080' =   'DarkCyan'      
-            'FF800000' =   'DarkRed'       
-            'FF800080' =   'DarkMagenta'   
-            'FF808000' =   'DarkYellow'    
-            'FFC0C0C0' =   'Gray'          
-            'FF808080' =   'DarkGray'      
-            'FF0000FF' =   'Blue'          
-            'FF00FF00' =   'Green'         
-            'FF00FFFF' =   'Cyan'          
-            'FFFF0000' =   'Red'           
-            'FFFF00FF' =   'Magenta'       
-            'FFFFFF00' =   'Yellow'         
-            'FFFFFFFF' =   'White'                 
+            'FF000000' =   '0'
+            'FF000080' =   '1'
+            'FF008000' =   '2'
+            'FF008080' =   '3'
+            'FF800000' =   '4'
+            'FF800080' =   '5'
+            'FF808000' =   '6'
+            'FFC0C0C0' =   '7'
+            'FF808080' =   '8'
+            'FF0000FF' =   '9'
+            'FF00FF00' =   'A'
+            'FF00FFFF' =   'B'
+            'FFFF0000' =   'C'
+            'FFFF00FF' =   'D'
+            'FFFFFF00' =   'E'
+            'FFFFFFFF' =   'F'
         }
+        $AsciiString = [char[]]@(33..126+33..126+33..126+33..126+33..126+33..126+33..126+33..126+33..126+33..126+33..126)
         
         # Algorithm to calculate closest Console color (Only 16) to a color of Pixel
         Function Get-ClosestConsoleColor($PixelColor)
@@ -48,19 +49,23 @@ Function Write-Pixel
 
             Foreach($y in (1..($BitMap.Height-1)))
             {
-                Foreach($x in (1..($BitMap.Width-1)))
+                $Line = Foreach($x in (1..($BitMap.Width-1)))
                 {
                     $Pixel = $BitMap.GetPixel($X,$Y)        
-                    $BackGround = $Colors.Item((Get-ClosestConsoleColor $Pixel.name))
-                    
+                    $Colors.Item((Get-ClosestConsoleColor $Pixel.name))
+                }
 
-                    If($ToASCII) # Condition to check ToASCII switch
-                    {
-                        Write-Host "$([Char](Get-Random -Maximum 126 -Minimum 33))" -NoNewline -ForegroundColor $BackGround
+                If($ToASCII) # Condition to check ToASCII switch
+                {
+                    Foreach ($Matched in [regex]::Matches(-join $Line,'(.)\1*')) {
+                        $String = -join (Get-Random -InputObject $AsciiString -Count ($Matched.Length))
+                        Write-Host -Object $String -BackgroundColor ([int]"0x$($Matched.Groups.Value[1])") -NoNewline
                     }
-                    else
-                    {
-                        Write-Host " " -NoNewline -BackgroundColor $BackGround
+                }
+                else
+                {
+                    Foreach ($Matched in [regex]::Matches(-join $Line,'(.)\1*')) {
+                        Write-Host -Object (' '*$Matched.Length) -BackgroundColor ([int]"0x$($Matched.Groups.Value[1])") -NoNewline
                     }
                 }
                 Write-Host '' # Blank write-host to Start the next row
